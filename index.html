@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Enhanced Encryption/Decryption Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+            font-weight: 300;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .key-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        #encryptionKey {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        #encryptionKey:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+        
+        .key-toggle {
+            padding: 10px 15px;
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        
+        .key-toggle:hover {
+            background: #e5e7eb;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 180px;
+            margin-bottom: 15px;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+        
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .output {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            min-height: 180px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            background: #f9fafb;
+            position: relative;
+            overflow-x: auto;
+        }
+        
+        .json-tree {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .json-node {
+            margin: 2px 0;
+        }
+        
+        .json-key {
+            color: #d73a49;
+            font-weight: bold;
+        }
+        
+        .json-string {
+            color: #032f62;
+        }
+        
+        .json-number {
+            color: #005cc5;
+        }
+        
+        .json-boolean {
+            color: #e36209;
+        }
+        
+        .json-null {
+            color: #6f42c1;
+        }
+        
+        .json-toggle {
+            cursor: pointer;
+            user-select: none;
+            color: #666;
+            margin-right: 5px;
+            display: inline-block;
+            width: 12px;
+            font-weight: bold;
+        }
+        
+        .json-toggle:hover {
+            color: #333;
+        }
+        
+        .json-collapsed {
+            color: #666;
+            font-style: italic;
+        }
+        
+        .json-children {
+            margin-left: 20px;
+            border-left: 1px dotted #ccc;
+            padding-left: 10px;
+        }
+        
+        .output-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+        }
+        
+        .output-controls button {
+            padding: 5px 10px;
+            font-size: 12px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+        
+        .output-controls button:hover {
+            opacity: 1;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        
+        .mode-selector {
+            display: flex;
+            background: #f3f4f6;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .mode-btn {
+            flex: 1;
+            padding: 10px;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .mode-btn.active {
+            background: white;
+            color: #4f46e5;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            .key-container {
+                flex-direction: column;
+            }
+            
+            #encryptionKey {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Enhanced Encryption/Decryption Tool</h1>
+        </div>
+        
+        <div class="content">
+            <div class="input-group">
+                <label for="encryptionKey">Encryption Key:</label>
+                <div class="key-container">
+                    <input type="password" id="encryptionKey" value="O2Fu27NO69d2VjALeAKkKw16zlohpBBL" placeholder="Enter your encryption key">
+                    <button type="button" class="key-toggle" onclick="toggleKeyVisibility()">👁️ Show</button>
+                    <button type="button" class="key-toggle" onclick="generateRandomKey()">🎲 Random</button>
+                </div>
+            </div>
+            
+            <div class="mode-selector">
+                <button class="mode-btn active" onclick="setMode('auto')" data-mode="auto">Auto Detect</button>
+                <button class="mode-btn" onclick="setMode('request')" data-mode="request">Request Payload</button>
+                <button class="mode-btn" onclick="setMode('response')" data-mode="response">Response Payload</button>
+                <button class="mode-btn" onclick="setMode('direct')" data-mode="direct">Direct Text</button>
+            </div>
+            
+            <div class="input-group">
+                <label for="inputText">Input Data:</label>
+                <textarea id="inputText" placeholder="Paste your encrypted payload, response, or text here..."></textarea>
+            </div>
+            
+            <div class="status" id="statusMessage"></div>
+            
+            <div class="button-group">
+                <button class="btn-primary" onclick="decrypt()">🔓 Decrypt</button>
+                <button class="btn-primary" onclick="encrypt()">🔒 Encrypt</button>
+                <button class="btn-success" onclick="beautifyOutput()">✨ Beautify Output</button>
+                <button class="btn-warning" onclick="minifyOutput()">📦 Minify Output</button>
+                <button class="btn-success" onclick="showTreeView()">🌳 Tree View</button>
+                <button class="btn-secondary" onclick="validateJson()">✅ Validate JSON</button>
+                <button class="btn-danger" onclick="clearAll()">🗑️ Clear All</button>
+            </div>
+            
+            <div class="input-group">
+                <label>Output:</label>
+                <div id="outputText" class="output">
+                    <div class="output-controls">
+                        <button onclick="copyOutput()" title="Copy to clipboard">📋 Copy</button>
+                        <button onclick="beautifyOutput()" title="Beautify JSON">✨</button>
+                        <button onclick="minifyOutput()" title="Minify JSON">📦</button>
+                        <button onclick="showTreeView()" title="Tree View">🌳</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'auto';
+        let outputData = null;
+        let currentViewMode = 'formatted';
+        
+        function getEncryptionKey() {
+            const keyInput = document.getElementById("encryptionKey").value.trim();
+            if (!keyInput) {
+                showStatus('Please enter an encryption key', 'error');
+                return null;
+            }
+            return CryptoJS.enc.Hex.parse(keyInput);
+        }
+        
+        function decryptData(encryptedData) {
+            const key = getEncryptionKey();
+            if (!key) return null;
+            
+            try {
+                const bytes = CryptoJS.AES.decrypt(encryptedData, key, { mode: CryptoJS.mode.ECB });
+                const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
+                
+                if (!decryptedString) {
+                    throw new Error('Invalid key or corrupted data');
+                }
+                
+                try {
+                    return JSON.parse(decryptedString);
+                } catch {
+                    return decryptedString;
+                }
+            } catch (error) {
+                throw new Error(`Decryption failed: ${error.message}`);
+            }
+        }
+
+        function encryptData(data) {
+            const key = getEncryptionKey();
+            if (!key) return null;
+            
+            try {
+                const stringData = typeof data === 'string' ? data : JSON.stringify(data);
+                return CryptoJS.AES.encrypt(stringData, key, { mode: CryptoJS.mode.ECB }).toString();
+            } catch (error) {
+                throw new Error(`Encryption failed: ${error.message}`);
+            }
+        }
+
+        function decrypt() {
+            const input = document.getElementById("inputText").value.trim();
+            if (!input) {
+                showStatus('Please enter some data to decrypt', 'error');
+                return;
+            }
+            
+            let result;
+            
+            try {
+                if (currentMode === 'auto') {
+                    try {
+                        const parsedInput = JSON.parse(input);
+                        if (parsedInput.encryptedData) {
+                            result = decryptData(parsedInput.encryptedData);
+                        } else if (parsedInput.encryptedResponse) {
+                            result = decryptData(parsedInput.encryptedResponse);
+                        } else {
+                            result = decryptData(input);
+                        }
+                    } catch {
+                        result = decryptData(input);
+                    }
+                } else if (currentMode === 'request') {
+                    const parsedInput = JSON.parse(input);
+                    result = decryptData(parsedInput.encryptedData);
+                } else if (currentMode === 'response') {
+                    const parsedInput = JSON.parse(input);
+                    result = decryptData(parsedInput.encryptedResponse);
+                } else {
+                    result = decryptData(input);
+                }
+                
+                if (result !== null) {
+                    outputData = result;
+                    displayOutput(result);
+                    showStatus('Decryption successful!', 'success');
+                }
+            } catch (error) {
+                outputData = null;
+                displayError(`❌ Error: ${error.message}`);
+                showStatus(error.message, 'error');
+            }
+        }
+
+        function encrypt() {
+            const input = document.getElementById("inputText").value.trim();
+            if (!input) {
+                showStatus('Please enter some data to encrypt', 'error');
+                return;
+            }
+            
+            try {
+                let data;
+                try {
+                    data = JSON.parse(input);
+                } catch {
+                    data = input;
+                }
+                
+                const result = encryptData(data);
+                if (result !== null) {
+                    outputData = result;
+                    displayOutput(result);
+                    showStatus('Encryption successful!', 'success');
+                }
+            } catch (error) {
+                outputData = null;
+                displayError(`❌ Error: ${error.message}`);
+                showStatus(error.message, 'error');
+            }
+        }
+
+        function displayOutput(data) {
+            const outputDiv = document.getElementById("outputText");
+            outputDiv.innerHTML = `
+                <div class="output-controls">
+                    <button onclick="copyOutput()" title="Copy to clipboard">📋 Copy</button>
+                    <button onclick="beautifyOutput()" title="Beautify JSON">✨</button>
+                    <button onclick="minifyOutput()" title="Minify JSON">📦</button>
+                    <button onclick="showTreeView()" title="Tree View">🌳</button>
+                </div>
+                <div class="output-content">
+                    ${typeof data === 'object' && data !== null ? JSON.stringify(data, null, 2) : data}
+                </div>
+            `;
+            currentViewMode = 'formatted';
+        }
+
+        function displayError(message) {
+            const outputDiv = document.getElementById("outputText");
+            outputDiv.innerHTML = `
+                <div class="output-controls">
+                    <button onclick="copyOutput()" title="Copy to clipboard">📋 Copy</button>
+                </div>
+                <div class="output-content">${message}</div>
+            `;
+        }
+
+        function beautifyOutput() {
+            if (!outputData) {
+                showStatus('No output data to beautify', 'error');
+                return;
+            }
+            
+            if (typeof outputData === 'object' && outputData !== null) {
+                const outputDiv = document.getElementById("outputText");
+                outputDiv.innerHTML = `
+                    <div class="output-controls">
+                        <button onclick="copyOutput()" title="Copy to clipboard">📋 Copy</button>
+                        <button onclick="beautifyOutput()" title="Beautify JSON">✨</button>
+                        <button onclick="minifyOutput()" title="Minify JSON">📦</button>
+                        <button onclick="showTreeView()" title="Tree View">🌳</button>
+                    </div>
+                    <div class="output-content">
+                        ${JSON.stringify(outputData, null, 2)}
+                    </div>
+                `;
+                currentViewMode = 'formatted';
+                showStatus('JSON beautified!', 'success');
+            } else {
+                showStatus('Output is not JSON data', 'error');
+            }
+        }
+
+        function minifyOutput() {
+            if (!outputData) {
+                showStatus('No output data to minify', 'error');
+                return;
+            }
+            
+            if (typeof outputData === 'object' && outputData !== null) {
+                const outputDiv = document.getElementById("outputText");
+                outputDiv.innerHTML = `
+                    <div class="output-controls">
+                        <button onclick="copyOutput()" title="Copy to clipboard">📋 Copy</button>
+                        <button onclick="beautifyOutput()" title="Beautify JSON">✨</button>
+                        <button onclick="minifyOutput()" title="Minify JSON">📦</button>
+                        <button onclick="showTreeView()" title="Tree View">🌳</button>
+                    </div>
+                    <div class="output-content">
+                        ${JSON.stringify(outputData)}
+                    </div>
+                `;
+                currentViewMode = 'minified';
+                showStatus('JSON minified!', 'success');
+            } else {
+                showStatus('Output is not JSON data', 'error');
+            }
+        }
+
+        function showTreeView() {
+            if (!outputData) {
+                showStatus('No output data to show in tree view', 'error');
+                return;
+            }
+            
+            if (typeof outputData === 'object' && outputData !== null) {
+                const outputDiv = document.getElementById("outputText");
+                outputDiv.innerHTML = `
+                    <div class="output-controls">
+                        <button onclick="copyOutput()" title="Copy to clipboard">📋 Copy</button>
+                        <button onclick="beautifyOutput()" title="Beautify JSON">✨</button>
+                        <button onclick="minifyOutput()" title="Minify JSON">📦</button>
+                        <button onclick="showTreeView()" title="Tree View">🌳</button>
+                    </div>
+                    <div class="output-content json-tree">
+                        ${generateTreeView(outputData)}
+                    </div>
+                `;
+                currentViewMode = 'tree';
+                showStatus('Tree view activated!', 'success');
+            } else {
+                showStatus('Output is not JSON data', 'error');
+            }
+        }
+
+        function generateTreeView(obj, level = 0) {
+            if (obj === null) return '<span class="json-null">null</span>';
+            if (typeof obj === 'string') return `<span class="json-string">"${escapeHtml(obj)}"</span>`;
+            if (typeof obj === 'number') return `<span class="json-number">${obj}</span>`;
+            if (typeof obj === 'boolean') return `<span class="json-boolean">${obj}</span>`;
+            
+            const isArray = Array.isArray(obj);
+            const entries = isArray ? obj.map((item, index) => [index, item]) : Object.entries(obj);
+            const openBracket = isArray ? '[' : '{';
+            const closeBracket = isArray ? ']' : '}';
+            
+            if (entries.length === 0) {
+                return `${openBracket}${closeBracket}`;
+            }
+            
+            const nodeId = `node_${Math.random().toString(36).substr(2, 9)}`;
+            
+            let html = `<div class="json-node">`;
+            html += `<span class="json-toggle" onclick="toggleNode('${nodeId}')">▼</span>`;
+            html += `${openBracket}`;
+            html += `<span class="json-collapsed" id="${nodeId}_collapsed" style="display: none;"> ... ${entries.length} items ${closeBracket}</span>`;
+            html += `<div class="json-children" id="${nodeId}_children">`;
+            
+            entries.forEach(([key, value], index) => {
+                const isLast = index === entries.length - 1;
+                html += `<div class="json-node">`;
+                
+                if (!isArray) {
+                    html += `<span class="json-key">"${escapeHtml(key)}"</span>: `;
+                } else {
+                    html += `<span class="json-key">${key}</span>: `;
+                }
+                
+                if (typeof value === 'object' && value !== null) {
+                    html += generateTreeView(value, level + 1);
+                } else {
+                    html += generateTreeView(value, level + 1);
+                }
+                
+                if (!isLast) html += ',';
+                html += `</div>`;
+            });
+            
+            html += `</div>`;
+            html += closeBracket;
+            html += `</div>`;
+            
+            return html;
+        }
+
+        function toggleNode(nodeId) {
+            const children = document.getElementById(`${nodeId}_children`);
+            const collapsed = document.getElementById(`${nodeId}_collapsed`);
+            const toggle = document.querySelector(`[onclick="toggleNode('${nodeId}')"]`);
+            
+            if (children.style.display === 'none') {
+                children.style.display = 'block';
+                collapsed.style.display = 'none';
+                toggle.textContent = '▼';
+            } else {
+                children.style.display = 'none';
+                collapsed.style.display = 'inline';
+                toggle.textContent = '▶';
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function validateJson() {
+            const input = document.getElementById("inputText").value.trim();
+            if (!input) {
+                showStatus('Please enter some JSON to validate', 'error');
+                return;
+            }
+            
+            try {
+                JSON.parse(input);
+                outputData = '✅ Valid JSON structure!';
+                displayOutput(outputData);
+                showStatus('JSON is valid!', 'success');
+            } catch (error) {
+                outputData = null;
+                displayError(`❌ Invalid JSON: ${error.message}`);
+                showStatus(`Invalid JSON: ${error.message}`, 'error');
+            }
+        }
+
+        function clearAll() {
+            document.getElementById("inputText").value = "";
+            outputData = null;
+            const outputDiv = document.getElementById("outputText");
+            outputDiv.innerHTML = `
+                <div class="output-controls">
+                    <button onclick="copyOutput()" title="Copy to clipboard">📋 Copy</button>
+                    <button onclick="beautifyOutput()" title="Beautify JSON">✨</button>
+                    <button onclick="minifyOutput()" title="Minify JSON">📦</button>
+                    <button onclick="showTreeView()" title="Tree View">🌳</button>
+                </div>
+            `;
+            hideStatus();
+        }
+        
+        function toggleKeyVisibility() {
+            const keyInput = document.getElementById("encryptionKey");
+            const toggleBtn = event.target;
+            
+            if (keyInput.type === "password") {
+                keyInput.type = "text";
+                toggleBtn.textContent = "👁️ Hide";
+            } else {
+                keyInput.type = "password";
+                toggleBtn.textContent = "👁️ Show";
+            }
+        }
+        
+        function generateRandomKey() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < 32; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById("encryptionKey").value = result;
+            showStatus('Random key generated!', 'success');
+        }
+        
+        function copyOutput() {
+            const outputContent = document.querySelector('.output-content');
+            if (!outputContent) {
+                showStatus('Nothing to copy', 'error');
+                return;
+            }
+            
+            let textToCopy;
+            if (currentViewMode === 'tree') {
+                textToCopy = typeof outputData === 'object' ? JSON.stringify(outputData, null, 2) : outputData;
+            } else {
+                textToCopy = outputContent.textContent.trim();
+            }
+            
+            if (!textToCopy) {
+                showStatus('Nothing to copy', 'error');
+                return;
+            }
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showStatus('Copied to clipboard!', 'success');
+            }).catch(() => {
+                showStatus('Failed to copy to clipboard', 'error');
+            });
+        }
+        
+        function setMode(mode) {
+            currentMode = mode;
+            
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+            
+            const textarea = document.getElementById("inputText");
+            const placeholders = {
+                'auto': 'Paste your encrypted payload, response, or text here...',
+                'request': 'Paste request payload with encryptedData field...',
+                'response': 'Paste response with encryptedResponse field...',
+                'direct': 'Paste encrypted text directly...'
+            };
+            textarea.placeholder = placeholders[mode];
+        }
+        
+        function showStatus(message, type) {
+            const status = document.getElementById("statusMessage");
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    hideStatus();
+                }, 3000);
+            }
+        }
+        
+        function hideStatus() {
+            document.getElementById("statusMessage").style.display = 'none';
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'd':
+                        e.preventDefault();
+                        decrypt();
+                        break;
+                    case 'e':
+                        e.preventDefault();
+                        encrypt();
+                        break;
+                    case 'f':
+                        if (e.shiftKey) {
+                            e.preventDefault();
+                            beautifyOutput();
+                        }
+                        break;
+                    case 'm':
+                        if (e.shiftKey) {
+                            e.preventDefault();
+                            minifyOutput();
+                        }
+                        break;
+                    case 't':
+                        if (e.shiftKey) {
+                            e.preventDefault();
+                            showTreeView();
+                        }
+                        break;
+                    case 'k':
+                        e.preventDefault();
+                        document.getElementById("encryptionKey").focus();
+                        break;
+                }
+            }
+        });
+        
+        clearAll();
+    </script>
+</body>
+</html>
