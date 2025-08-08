@@ -3,7 +3,6 @@
 <head>
     <title>Enhanced Encryption/Decryption Tool</title>
     <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/rogue-wild/tool-enc-decr/refs/heads/main/favicon.ico">
-    <link rel="icon" type="image/png" href="/favicon.ico">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         * {
@@ -19,7 +18,7 @@
         }
         
         .container {
-            max-width: 1000px;
+            max-width: 900px;
             margin: 0 auto;
             background: white;
             border-radius: 12px;
@@ -60,71 +59,156 @@
             gap: 10px;
             align-items: center;
             margin-bottom: 25px;
+            position: relative;
         }
         
         #encryptionKey {
             flex: 1;
-            padding: 12px;
+            padding: 12px 16px;
             border: 2px solid #e5e7eb;
-            border-radius: 6px;
+            border-radius: 8px;
             font-family: 'Courier New', monospace;
             font-size: 14px;
-            transition: border-color 0.3s;
+            transition: all 0.3s ease;
+            background: #f9fafb;
         }
         
         #encryptionKey:focus {
             outline: none;
             border-color: #4f46e5;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        .key-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 120px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .key-suggestion {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s ease;
+        }
+        
+        .key-suggestion:hover {
+            background: #f8fafc;
+        }
+        
+        .key-suggestion:last-child {
+            border-bottom: none;
+        }
+        
+        .key-suggestion.selected {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+        
+        .suggestion-text {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .suggestion-time {
+            font-size: 11px;
+            color: #6b7280;
+            margin-left: 10px;
+        }
+        
+        .suggestion-remove {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 8px;
+            opacity: 0.6;
+            transition: all 0.2s ease;
+        }
+        
+        .suggestion-remove:hover {
+            opacity: 1;
+            background: #fee2e2;
         }
         
         .key-toggle {
-            padding: 10px 15px;
+            padding: 12px 16px;
             background: #f3f4f6;
             border: 1px solid #d1d5db;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #374151;
         }
         
         .key-toggle:hover {
             background: #e5e7eb;
+            transform: translateY(-1px);
         }
         
         textarea {
             width: 100%;
-            height: 180px;
+            height: 150px;
             margin-bottom: 15px;
-            padding: 15px;
+            padding: 16px;
             border: 2px solid #e5e7eb;
             border-radius: 8px;
             font-family: 'Courier New', monospace;
             font-size: 14px;
             resize: vertical;
-            transition: border-color 0.3s;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+            line-height: 1.5;
         }
         
         textarea:focus {
             outline: none;
             border-color: #4f46e5;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
         
         .button-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
             margin-bottom: 25px;
         }
         
         button {
-            padding: 12px 20px;
+            padding: 14px 20px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         
         .btn-primary {
@@ -155,7 +239,7 @@
         
         button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
         
         button:active {
@@ -167,158 +251,149 @@
             border-radius: 8px;
             padding: 20px;
             margin-top: 20px;
-            min-height: 180px;
+            min-height: 150px;
             white-space: pre-wrap;
             font-family: 'Courier New', monospace;
             font-size: 14px;
             background: #f9fafb;
             position: relative;
             overflow-x: auto;
-        }
-        
-        .json-tree {
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-        
-        .json-node {
-            margin: 2px 0;
-        }
-        
-        .json-key {
-            color: #d73a49;
-            font-weight: bold;
-        }
-        
-        .json-string {
-            color: #032f62;
-        }
-        
-        .json-number {
-            color: #005cc5;
-        }
-        
-        .json-boolean {
-            color: #e36209;
-        }
-        
-        .json-null {
-            color: #6f42c1;
-        }
-        
-        .json-toggle {
-            cursor: pointer;
-            user-select: none;
-            color: #666;
-            margin-right: 5px;
-            display: inline-block;
-            width: 12px;
-            font-weight: bold;
-        }
-        
-        .json-toggle:hover {
-            color: #333;
-        }
-        
-        .json-collapsed {
-            color: #666;
-            font-style: italic;
-        }
-        
-        .json-children {
-            margin-left: 20px;
-            border-left: 1px dotted #ccc;
-            padding-left: 10px;
+            line-height: 1.5;
         }
         
         .output-controls {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 12px;
+            right: 12px;
             display: flex;
-            gap: 5px;
+            gap: 8px;
         }
         
         .output-controls button {
-            padding: 5px 10px;
+            padding: 6px 12px;
             font-size: 12px;
             background: #4f46e5;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
-            opacity: 0.7;
-            transition: opacity 0.3s;
+            opacity: 0.8;
+            transition: all 0.3s ease;
         }
         
         .output-controls button:hover {
             opacity: 1;
-            transform: none;
-            box-shadow: none;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
         }
         
         .status {
-            padding: 10px;
-            border-radius: 6px;
+            padding: 12px 16px;
+            border-radius: 8px;
             margin-bottom: 15px;
             font-weight: 600;
             display: none;
+            border-left: 4px solid;
         }
         
         .status.success {
             background: #d1fae5;
             color: #065f46;
-            border: 1px solid #a7f3d0;
+            border-left-color: #10b981;
         }
         
         .status.error {
             background: #fee2e2;
             color: #991b1b;
-            border: 1px solid #fecaca;
+            border-left-color: #ef4444;
         }
         
         .mode-selector {
             display: flex;
             background: #f3f4f6;
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 4px;
             margin-bottom: 20px;
+            border: 1px solid #e5e7eb;
         }
         
         .mode-btn {
             flex: 1;
-            padding: 10px;
+            padding: 12px 16px;
             background: transparent;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            color: #6b7280;
         }
         
         .mode-btn.active {
             background: white;
             color: #4f46e5;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .mode-btn:hover:not(.active) {
+            color: #4f46e5;
+            background: #f8fafc;
         }
         
         @media (max-width: 768px) {
             .button-group {
-                flex-direction: column;
-            }
-            
-            button {
-                width: 100%;
+                grid-template-columns: 1fr;
             }
             
             .key-container {
                 flex-direction: column;
+                gap: 12px;
             }
             
-            #encryptionKey {
-                margin-bottom: 10px;
+            .key-toggle {
+                width: 100%;
             }
+            
+            .key-suggestions {
+                right: 0;
+            }
+            
+            .mode-selector {
+                flex-direction: column;
+                gap: 4px;
+            }
+        }
+        
+        .json-tree {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .json-key { color: #d73a49; font-weight: bold; }
+        .json-string { color: #032f62; }
+        .json-number { color: #005cc5; }
+        .json-boolean { color: #e36209; }
+        .json-null { color: #6f42c1; }
+        
+        .json-toggle {
+            cursor: pointer;
+            user-select: none;
+            color: #666;
+            margin-right: 8px;
+            display: inline-block;
+            width: 12px;
+            font-weight: bold;
+            transition: color 0.2s ease;
+        }
+        
+        .json-toggle:hover { color: #333; }
+        .json-collapsed { color: #666; font-style: italic; }
+        .json-children {
+            margin-left: 20px;
+            border-left: 2px dotted #ddd;
+            padding-left: 12px;
         }
     </style>
 </head>
@@ -332,44 +407,63 @@
             <div class="input-group">
                 <label for="encryptionKey">Encryption Key:</label>
                 <div class="key-container">
-                    <input type="password" id="encryptionKey" value="" placeholder="Enter your encryption key">
-                    <button type="button" class="key-toggle" onclick="toggleKeyVisibility()">👁️ Show</button>
-                    <button type="button" class="key-toggle" onclick="generateRandomKey()">🎲 Random</button>
+                    <input type="text" 
+                           id="encryptionKey" 
+                           placeholder="Enter your encryption key" 
+                           autocomplete="encryption-key"
+                           spellcheck="false">
+                    <div class="key-suggestions" id="keySuggestions"></div>
+                    <button type="button" class="key-toggle" onclick="generateRandomKey()">🎲 Generate</button>
                 </div>
             </div>
             
             <div class="mode-selector">
                 <button class="mode-btn active" onclick="setMode('auto')" data-mode="auto">Auto Detect</button>
-                <button class="mode-btn" onclick="setMode('request')" data-mode="request">Request Payload</button>
-                <button class="mode-btn" onclick="setMode('response')" data-mode="response">Response Payload</button>
+                <button class="mode-btn" onclick="setMode('request')" data-mode="request">Request</button>
+                <button class="mode-btn" onclick="setMode('response')" data-mode="response">Response</button>
                 <button class="mode-btn" onclick="setMode('direct')" data-mode="direct">Direct Text</button>
             </div>
             
             <div class="input-group">
                 <label for="inputText">Input Data:</label>
-                <textarea id="inputText" placeholder="Paste your encrypted payload, response, or text here..."></textarea>
+                <textarea id="inputText" 
+                          placeholder="Paste your encrypted payload, response, or text here..."
+                          spellcheck="false"></textarea>
             </div>
             
             <div class="status" id="statusMessage"></div>
             
             <div class="button-group">
-                <button class="btn-primary" onclick="decrypt()">🔓 Decrypt</button>
-                <button class="btn-primary" onclick="encrypt()">🔒 Encrypt</button>
-                <button class="btn-success" onclick="beautifyOutput()">✨ Beautify Output</button>
-                <button class="btn-warning" onclick="minifyOutput()">📦 Minify Output</button>
-                <button class="btn-success" onclick="showTreeView()">🌳 Tree View</button>
-                <button class="btn-secondary" onclick="validateJson()">✅ Validate JSON</button>
-                <button class="btn-danger" onclick="clearAll()">🗑️ Clear All</button>
+                <button class="btn-primary" onclick="decrypt()">
+                    <span>🔓</span> Decrypt
+                </button>
+                <button class="btn-primary" onclick="encrypt()">
+                    <span>🔒</span> Encrypt
+                </button>
+                <button class="btn-success" onclick="beautifyOutput()">
+                    <span>✨</span> Beautify
+                </button>
+                <button class="btn-warning" onclick="minifyOutput()">
+                    <span>📦</span> Minify
+                </button>
+                <button class="btn-success" onclick="showTreeView()">
+                    <span>🌳</span> Tree View
+                </button>
+                <button class="btn-secondary" onclick="validateJson()">
+                    <span>✅</span> Validate
+                </button>
+                <button class="btn-danger" onclick="clearAll()">
+                    <span>🗑️</span> Clear
+                </button>
             </div>
             
             <div class="input-group">
                 <label>Output:</label>
                 <div id="outputText" class="output">
                     <div class="output-controls">
-                        <button onclick="copyOutput()" title="Copy to clipboard">📋 Copy</button>
+                        <button onclick="copyOutput()" title="Copy to clipboard">📋</button>
                         <button onclick="beautifyOutput()" title="Beautify JSON">✨</button>
                         <button onclick="minifyOutput()" title="Minify JSON">📦</button>
-                        <button onclick="showTreeView()" title="Tree View">🌳</button>
                     </div>
                 </div>
             </div>
@@ -380,6 +474,98 @@
         let currentMode = 'auto';
         let outputData = null;
         let currentViewMode = 'formatted';
+        let keyHistory = [];
+        let maxHistorySize = 10;
+        
+        console.log(JSON.parse(localStorage.getItem('encryptionKeyHistory')))
+        function saveKeyToHistory(key) {
+            if (!key || key.length < 3) return;
+            
+            keyHistory = keyHistory.filter(item => item.key !== key);
+            keyHistory.unshift({
+                key: key,
+                timestamp: new Date(),
+                used: 1
+            });
+            
+            if (keyHistory.length > maxHistorySize) {
+                keyHistory = keyHistory.slice(0, maxHistorySize);
+            }
+            
+            localStorage.setItem('encryptionKeyHistory', JSON.stringify(keyHistory));
+        }
+        
+        function loadKeyHistory() {
+            try {
+                const stored = localStorage.getItem('encryptionKeyHistory');
+                if (stored) {
+                    keyHistory = JSON.parse(stored).map(item => ({
+                        ...item,
+                        timestamp: new Date(item.timestamp)
+                    }));
+                }
+            } catch (e) {
+                keyHistory = [];
+            }
+        }
+        
+        function updateKeySuggestions() {
+            const suggestionsDiv = document.getElementById('keySuggestions');
+            const keyInput = document.getElementById('encryptionKey');
+            const inputValue = keyInput.value.toLowerCase();
+            
+            if (keyHistory.length === 0 || inputValue.length === 0) {
+                suggestionsDiv.style.display = 'none';
+                return;
+            }
+            
+            const filteredSuggestions = keyHistory.filter(item => 
+                item.key.toLowerCase().includes(inputValue) && item.key !== keyInput.value
+            );
+            
+            if (filteredSuggestions.length === 0) {
+                suggestionsDiv.style.display = 'none';
+                return;
+            }
+            
+            suggestionsDiv.innerHTML = filteredSuggestions.map((item, index) => {
+                const timeAgo = getTimeAgo(item.timestamp);
+                const displayKey = item.key.length > 40 ? item.key.substring(0, 40) + '...' : item.key;
+                return `
+                    <div class="key-suggestion" onclick="selectSuggestion('${escapeHtml(item.key)}')">
+                        <span class="suggestion-text" title="${escapeHtml(item.key)}">${escapeHtml(displayKey)}</span>
+                        <span class="suggestion-time">${timeAgo}</span>
+                        <button class="suggestion-remove" onclick="event.stopPropagation(); removeSuggestion(${index})" title="Remove">×</button>
+                    </div>
+                `;
+            }).join('');
+            
+            suggestionsDiv.style.display = 'block';
+        }
+        
+        function selectSuggestion(key) {
+            document.getElementById('encryptionKey').value = key;
+            document.getElementById('keySuggestions').style.display = 'none';
+        }
+        
+        function removeSuggestion(index) {
+            keyHistory.splice(index, 1);
+            localStorage.setItem('encryptionKeyHistory', JSON.stringify(keyHistory));
+            updateKeySuggestions();
+        }
+        
+        function getTimeAgo(timestamp) {
+            const now = new Date();
+            const diffMs = now - timestamp;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+            
+            if (diffMins < 1) return 'now';
+            if (diffMins < 60) return `${diffMins}m`;
+            if (diffHours < 24) return `${diffHours}h`;
+            return `${diffDays}d`;
+        }
         
         function getEncryptionKey() {
             const keyInput = document.getElementById("encryptionKey").value.trim();
@@ -431,9 +617,11 @@
                 return;
             }
             
-            let result;
+            const keyValue = document.getElementById("encryptionKey").value.trim();
             
             try {
+                let result;
+                
                 if (currentMode === 'auto') {
                     try {
                         const parsedInput = JSON.parse(input);
@@ -460,11 +648,12 @@
                 if (result !== null) {
                     outputData = result;
                     displayOutput(result);
-                    showStatus('Decryption successful!', 'success');
+                    showStatus('✅ Decryption successful!', 'success');
+                    saveKeyToHistory(keyValue);
                 }
             } catch (error) {
                 outputData = null;
-                displayError(`❌ Error: ${error.message}`);
+                displayError(`❌ ${error.message}`);
                 showStatus(error.message, 'error');
             }
         }
@@ -475,6 +664,8 @@
                 showStatus('Please enter some data to encrypt', 'error');
                 return;
             }
+            
+            const keyValue = document.getElementById("encryptionKey").value.trim();
             
             try {
                 let data;
@@ -488,11 +679,12 @@
                 if (result !== null) {
                     outputData = result;
                     displayOutput(result);
-                    showStatus('Encryption successful!', 'success');
+                    showStatus('✅ Encryption successful!', 'success');
+                    saveKeyToHistory(keyValue);
                 }
             } catch (error) {
                 outputData = null;
-                displayError(`❌ Error: ${error.message}`);
+                displayError(`❌ ${error.message}`);
                 showStatus(error.message, 'error');
             }
         }
@@ -501,10 +693,9 @@
             const outputDiv = document.getElementById("outputText");
             outputDiv.innerHTML = `
                 <div class="output-controls">
-                    <button onclick="copyOutput()" title="Copy to clipboard">📋 Copy</button>
+                    <button onclick="copyOutput()" title="Copy to clipboard">📋</button>
                     <button onclick="beautifyOutput()" title="Beautify JSON">✨</button>
                     <button onclick="minifyOutput()" title="Minify JSON">📦</button>
-                    <button onclick="showTreeView()" title="Tree View">🌳</button>
                 </div>
                 <div class="output-content">
                     ${typeof data === 'object' && data !== null ? JSON.stringify(data, null, 2) : data}
@@ -517,9 +708,9 @@
             const outputDiv = document.getElementById("outputText");
             outputDiv.innerHTML = `
                 <div class="output-controls">
-                    <button onclick="copyOutput()" title="Copy to clipboard">📋 Copy</button>
+                    <button onclick="copyOutput()" title="Copy to clipboard">📋</button>
                 </div>
-                <div class="output-content">${message}</div>
+                <div class="output-content" style="color: #dc2626;">${message}</div>
             `;
         }
 
@@ -530,20 +721,8 @@
             }
             
             if (typeof outputData === 'object' && outputData !== null) {
-                const outputDiv = document.getElementById("outputText");
-                outputDiv.innerHTML = `
-                    <div class="output-controls">
-                        <button onclick="copyOutput()" title="Copy to clipboard">📋 Copy</button>
-                        <button onclick="beautifyOutput()" title="Beautify JSON">✨</button>
-                        <button onclick="minifyOutput()" title="Minify JSON">📦</button>
-                        <button onclick="showTreeView()" title="Tree View">🌳</button>
-                    </div>
-                    <div class="output-content">
-                        ${JSON.stringify(outputData, null, 2)}
-                    </div>
-                `;
-                currentViewMode = 'formatted';
-                showStatus('JSON beautified!', 'success');
+                displayOutput(outputData);
+                showStatus('✨ JSON beautified!', 'success');
             } else {
                 showStatus('Output is not JSON data', 'error');
             }
@@ -559,17 +738,16 @@
                 const outputDiv = document.getElementById("outputText");
                 outputDiv.innerHTML = `
                     <div class="output-controls">
-                        <button onclick="copyOutput()" title="Copy to clipboard">📋 Copy</button>
+                        <button onclick="copyOutput()" title="Copy to clipboard">📋</button>
                         <button onclick="beautifyOutput()" title="Beautify JSON">✨</button>
                         <button onclick="minifyOutput()" title="Minify JSON">📦</button>
-                        <button onclick="showTreeView()" title="Tree View">🌳</button>
                     </div>
                     <div class="output-content">
                         ${JSON.stringify(outputData)}
                     </div>
                 `;
                 currentViewMode = 'minified';
-                showStatus('JSON minified!', 'success');
+                showStatus('📦 JSON minified!', 'success');
             } else {
                 showStatus('Output is not JSON data', 'error');
             }
@@ -585,17 +763,16 @@
                 const outputDiv = document.getElementById("outputText");
                 outputDiv.innerHTML = `
                     <div class="output-controls">
-                        <button onclick="copyOutput()" title="Copy to clipboard">📋 Copy</button>
+                        <button onclick="copyOutput()" title="Copy to clipboard">📋</button>
                         <button onclick="beautifyOutput()" title="Beautify JSON">✨</button>
                         <button onclick="minifyOutput()" title="Minify JSON">📦</button>
-                        <button onclick="showTreeView()" title="Tree View">🌳</button>
                     </div>
                     <div class="output-content json-tree">
                         ${generateTreeView(outputData)}
                     </div>
                 `;
                 currentViewMode = 'tree';
-                showStatus('Tree view activated!', 'success');
+                showStatus('🌳 Tree view activated!', 'success');
             } else {
                 showStatus('Output is not JSON data', 'error');
             }
@@ -612,9 +789,7 @@
             const openBracket = isArray ? '[' : '{';
             const closeBracket = isArray ? ']' : '}';
             
-            if (entries.length === 0) {
-                return `${openBracket}${closeBracket}`;
-            }
+            if (entries.length === 0) return `${openBracket}${closeBracket}`;
             
             const nodeId = `node_${Math.random().toString(36).substr(2, 9)}`;
             
@@ -634,12 +809,7 @@
                     html += `<span class="json-key">${key}</span>: `;
                 }
                 
-                if (typeof value === 'object' && value !== null) {
-                    html += generateTreeView(value, level + 1);
-                } else {
-                    html += generateTreeView(value, level + 1);
-                }
-                
+                html += generateTreeView(value, level + 1);
                 if (!isLast) html += ',';
                 html += `</div>`;
             });
@@ -684,7 +854,7 @@
                 JSON.parse(input);
                 outputData = '✅ Valid JSON structure!';
                 displayOutput(outputData);
-                showStatus('JSON is valid!', 'success');
+                showStatus('✅ JSON is valid!', 'success');
             } catch (error) {
                 outputData = null;
                 displayError(`❌ Invalid JSON: ${error.message}`);
@@ -694,30 +864,17 @@
 
         function clearAll() {
             document.getElementById("inputText").value = "";
+            document.getElementById("encryptionKey").value = "";
             outputData = null;
             const outputDiv = document.getElementById("outputText");
             outputDiv.innerHTML = `
                 <div class="output-controls">
-                    <button onclick="copyOutput()" title="Copy to clipboard">📋 Copy</button>
+                    <button onclick="copyOutput()" title="Copy to clipboard">📋</button>
                     <button onclick="beautifyOutput()" title="Beautify JSON">✨</button>
                     <button onclick="minifyOutput()" title="Minify JSON">📦</button>
-                    <button onclick="showTreeView()" title="Tree View">🌳</button>
                 </div>
             `;
             hideStatus();
-        }
-        
-        function toggleKeyVisibility() {
-            const keyInput = document.getElementById("encryptionKey");
-            const toggleBtn = event.target;
-            
-            if (keyInput.type === "password") {
-                keyInput.type = "text";
-                toggleBtn.textContent = "👁️ Hide";
-            } else {
-                keyInput.type = "password";
-                toggleBtn.textContent = "👁️ Show";
-            }
         }
         
         function generateRandomKey() {
@@ -727,7 +884,7 @@
                 result += chars.charAt(Math.floor(Math.random() * chars.length));
             }
             document.getElementById("encryptionKey").value = result;
-            showStatus('Random key generated!', 'success');
+            showStatus('🎲 Random key generated!', 'success');
         }
         
         function copyOutput() {
@@ -750,7 +907,7 @@
             }
             
             navigator.clipboard.writeText(textToCopy).then(() => {
-                showStatus('Copied to clipboard!', 'success');
+                showStatus('📋 Copied to clipboard!', 'success');
             }).catch(() => {
                 showStatus('Failed to copy to clipboard', 'error');
             });
@@ -781,9 +938,7 @@
             status.style.display = 'block';
             
             if (type === 'success') {
-                setTimeout(() => {
-                    hideStatus();
-                }, 3000);
+                setTimeout(hideStatus, 3000);
             }
         }
         
@@ -791,6 +946,60 @@
             document.getElementById("statusMessage").style.display = 'none';
         }
         
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            loadKeyHistory();
+            
+            const keyInput = document.getElementById('encryptionKey');
+            keyInput.value = JSON.parse(localStorage.getItem('encryptionKeyHistory'))?.[0]?.key || '';
+            
+            // keyInput.addEventListener('input', updateKeySuggestions);
+            // keyInput.addEventListener('focus', function() {
+            //     if (keyHistory.length > 0 && this.value.length > 0) {
+            //         updateKeySuggestions();
+            //     }
+            // });
+            
+            keyInput.addEventListener('blur', function() {
+                setTimeout(() => {
+                    document.getElementById('keySuggestions').style.display = 'none';
+                }, 200);
+            });
+            
+            keyInput.addEventListener('keydown', function(e) {
+                const suggestions = document.getElementById('keySuggestions');
+                const suggestionItems = suggestions.querySelectorAll('.key-suggestion');
+                
+                if (suggestions.style.display === 'block' && suggestionItems.length > 0) {
+                    let selectedIndex = -1;
+                    suggestionItems.forEach((item, index) => {
+                        if (item.classList.contains('selected')) {
+                            selectedIndex = index;
+                        }
+                    });
+                    
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        suggestionItems.forEach(item => item.classList.remove('selected'));
+                        selectedIndex = (selectedIndex + 1) % suggestionItems.length;
+                        suggestionItems[selectedIndex].classList.add('selected');
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        suggestionItems.forEach(item => item.classList.remove('selected'));
+                        selectedIndex = selectedIndex <= 0 ? suggestionItems.length - 1 : selectedIndex - 1;
+                        suggestionItems[selectedIndex].classList.add('selected');
+                    } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                        e.preventDefault();
+                        const selectedKey = keyHistory[selectedIndex].key;
+                        selectSuggestion(selectedKey);
+                    } else if (e.key === 'Escape') {
+                        suggestions.style.display = 'none';
+                    }
+                }
+            });
+        });
+        
+        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.ctrlKey || e.metaKey) {
                 switch(e.key) {
@@ -802,29 +1011,18 @@
                         e.preventDefault();
                         encrypt();
                         break;
-                    case 'f':
-                        if (e.shiftKey) {
-                            e.preventDefault();
-                            beautifyOutput();
-                        }
-                        break;
-                    case 'm':
-                        if (e.shiftKey) {
-                            e.preventDefault();
-                            minifyOutput();
-                        }
-                        break;
-                    case 't':
-                        if (e.shiftKey) {
-                            e.preventDefault();
-                            showTreeView();
-                        }
-                        break;
                     case 'k':
                         e.preventDefault();
                         document.getElementById("encryptionKey").focus();
                         break;
                 }
+            }
+        });
+        
+        // Close suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.key-container')) {
+                document.getElementById('keySuggestions').style.display = 'none';
             }
         });
         
